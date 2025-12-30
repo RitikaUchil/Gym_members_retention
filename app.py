@@ -106,7 +106,7 @@ st.markdown(
         margin-bottom: 30px;
         text-align: center;
     ">
-        <h1 style='color:#00f5ff;>
+        <h1 style='color:#00f5ff';>
             🏋️ Gym Owner Retention Dashboard (ML Predictions)
         </h1>
     </div>
