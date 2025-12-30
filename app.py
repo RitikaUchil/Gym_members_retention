@@ -61,8 +61,27 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Wrap all dashboard content
-st.markdown('<div class="main-content">', unsafe_allow_html=True)
+# --------------------------
+# Wrap all dashboard content in glass container and add header immediately
+# --------------------------
+st.markdown(
+    """
+    <div class="main-content">
+        <h1 style="
+            text-align:center;
+            color:#00f5ff;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.5);
+            display: inline-block;
+            padding: 15px 25px;
+            border-radius: 20px;
+            margin-bottom:30px;
+        ">
+        🏋️ Gym Owner Retention Dashboard (ML Predictions)
+        </h1>
+    """,
+    unsafe_allow_html=True
+)
 
 # --------------------------
 # Required Columns Mapping
@@ -96,26 +115,6 @@ def auto_map_columns(df, required_map):
                 mapped[col] = standard_col
                 break
     return mapped
-
-# --------------------------
-# Header
-# --------------------------
-st.markdown(
-    """
-    <h1 style="
-        text-align:center;
-        color:#00f5ff;
-        text-shadow: 2px 2px 8px rgba(0,0,0,0.9);
-        background: rgba(0,0,0,0.5);
-        display: inline-block;
-        padding: 15px 25px;
-        border-radius: 20px;
-    ">
-    🏋️ Gym Owner Retention Dashboard (ML Predictions)
-    </h1>
-    """,
-    unsafe_allow_html=True
-)
 
 # --------------------------
 # File Upload
