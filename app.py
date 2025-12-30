@@ -84,18 +84,17 @@ st.markdown(
     """
     <div style="
         background: rgba(0,0,0,0.55);
-        padding: 25px;
+        backdrop-filter: blur(12px);
+        padding: 20px 30px;
         border-radius: 20px;
         margin-bottom: 25px;
         text-align: center;
-        border-bottom: 3px solid #00f5ff;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     ">
         <h1 style='
             color:#00f5ff;
-            font-size:44px;
+            font-size:42px;
             font-weight:bold;
-            text-shadow: 2px 2px 12px rgba(0,0,0,0.8);
+            text-shadow: 0 0 12px #00f5ff;
             margin-bottom: 0px;
         '>
             🏋️ Gym Owner Retention Dashboard (ML Predictions)
@@ -104,6 +103,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 # --------------------------
 # Upload Section
