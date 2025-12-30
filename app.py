@@ -1,5 +1,6 @@
 # --------------------------
 # Gym Owner Dashboard - Retention Intelligence Pro (ML via Pickle)
+# Fully visualized version
 # --------------------------
 
 import pandas as pd
@@ -68,56 +69,31 @@ def set_background(image_path):
             padding: 2rem;
             border-radius: 18px;
         }}
-        .metric-card {{
-            background: rgba(0,0,0,0.85);
-            padding: 20px;
-            border-radius: 16px;
-            text-align: center;
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: 1px solid rgba(255,255,255,0.1);
-        }}
-        .metric-card:hover {{
-            transform: scale(1.05);
-            box-shadow: 0 10px 25px rgba(0,255,255,0.6);
-        }}
-        .metric-card h1 {{
-            background: linear-gradient(to right, #00f5ff, #ff00f5);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-size: 38px;
-            text-shadow: 2px 2px 10px rgba(0,0,0,0.7);
-            margin-bottom: 5px;
-        }}
-        .metric-card p {{
-            color: #f0f0f0;
-            font-weight: bold;
-            margin-top: 5px;
-        }}
         </style>
         """,
         unsafe_allow_html=True
     )
 
+# Set your gym image
 set_background("assets/bg.jpg")  # Replace with your image path
 
 # --------------------------
-# Header with Thin Neon Border
+# Header with Neon Border
 # --------------------------
 st.markdown(
     """
     <div style="
         background: rgba(0,0,0,0.55);
-        backdrop-filter: blur(12px);
-        padding: 20px 30px;
+        padding: 25px;
         border-radius: 20px;
-        margin-bottom: 30px;
+        margin-bottom: 25px;
         text-align: center;
-        box-shadow: 0 6px 25px rgba(0,0,0,0.6);
-        border-bottom: 2px solid #00f5ff;
+        border-bottom: 3px solid #00f5ff;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     ">
         <h1 style='
             color:#00f5ff;
-            font-size:42px;
+            font-size:44px;
             font-weight:bold;
             text-shadow: 2px 2px 12px rgba(0,0,0,0.8);
             margin-bottom: 0px;
@@ -132,24 +108,24 @@ st.markdown(
 # --------------------------
 # Upload Section
 # --------------------------
-st.markdown(
-    """
-    <div style="
-        background: rgba(0,0,0,0.55);
-        backdrop-filter: blur(15px);
-        padding: 25px;
-        border-radius: 18px;
-        margin-bottom: 25px;
-        border: 1px solid rgba(255,255,255,0.1);
-    ">
-    """,
-    unsafe_allow_html=True
-)
+with st.container():
+    st.markdown(
+        """
+        <div style="
+            background: rgba(0,0,0,0.55);
+            padding: 20px;
+            border-radius: 18px;
+            margin-bottom: 25px;
+            text-align: center;
+        ">
+        """,
+        unsafe_allow_html=True
+    )
 
-members_file = st.file_uploader("Upload Members Excel", type=["xlsx"], key="members")
-attendance_file = st.file_uploader("Upload Attendance Excel", type=["xlsx"], key="attendance")
+    members_file = st.file_uploader("Upload Members Excel", type=["xlsx"], key="members")
+    attendance_file = st.file_uploader("Upload Attendance Excel", type=["xlsx"], key="attendance")
 
-st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # --------------------------
 # Process Uploaded Files
@@ -221,41 +197,50 @@ if members_file and attendance_file:
     filtered_data = data[data['RiskLevel'].isin(risk_filter)]
 
     # --------------------------
-    # Metrics
+    # Metrics with Colored Cards
     # --------------------------
     c1,c2,c3,c4 = st.columns(4)
-    c1.markdown(f"<div class='metric-card'><h1>{len(filtered_data)}</h1><p>Total Members</p></div>", unsafe_allow_html=True)
-    c2.markdown(f"<div class='metric-card'><h1>{(filtered_data['RiskLevel']=='High').sum()}</h1><p>High Risk</p></div>", unsafe_allow_html=True)
-    c3.markdown(f"<div class='metric-card'><h1>{round(filtered_data['AvgVisitsPerWeek'].mean(),2)}</h1><p>Avg Visits / Week</p></div>", unsafe_allow_html=True)
-    c4.markdown(f"<div class='metric-card'><h1>{round(filtered_data['PaymentRatio'].mean(),2)}</h1><p>Payment Ratio</p></div>", unsafe_allow_html=True)
+    metric_style = """
+        background: rgba(0,0,0,0.85);
+        padding:20px;
+        border-radius:15px;
+        text-align:center;
+        box-shadow: 0 4px 20px rgba(0,255,255,0.4);
+    """
+    c1.markdown(f"<div style='{metric_style}'><h2 style='color:#00f5ff'>{len(filtered_data)}</h2><p>Total Members</p></div>", unsafe_allow_html=True)
+    c2.markdown(f"<div style='{metric_style}'><h2 style='color:#ff4d4d'>{(filtered_data['RiskLevel']=='High').sum()}</h2><p>High Risk</p></div>", unsafe_allow_html=True)
+    c3.markdown(f"<div style='{metric_style}'><h2 style='color:#00ffcc'>{round(filtered_data['AvgVisitsPerWeek'].mean(),2)}</h2><p>Avg Visits / Week</p></div>", unsafe_allow_html=True)
+    c4.markdown(f"<div style='{metric_style}'><h2 style='color:#ffff66'>{round(filtered_data['PaymentRatio'].mean(),2)}</h2><p>Payment Ratio</p></div>", unsafe_allow_html=True)
 
-    st.markdown("<hr style='border:1px solid rgba(255,255,255,0.2); margin:20px 0;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border:1px solid rgba(255,255,255,0.2)'>", unsafe_allow_html=True)
 
     # --------------------------
-    # Charts
+    # Charts with Better Colors
     # --------------------------
-    st.markdown("<div style='margin-bottom:20px;'>", unsafe_allow_html=True)
     st.subheader("Risk Distribution")
-    fig1 = px.pie(filtered_data, names="RiskLevel", hole=0.45, template="plotly_dark",
-                  color_discrete_map={"Low":"#00FF7F","Medium":"#FFD700","High":"#FF4500"})
+    fig1 = px.pie(filtered_data, names="RiskLevel", hole=0.4,
+                  color="RiskLevel", color_discrete_map={'Low':'#00ff99','Medium':'#ffcc00','High':'#ff4d4d'},
+                  template="plotly_dark")
     st.plotly_chart(fig1, use_container_width=True)
 
     st.subheader("Avg Visits Per Week")
-    fig2 = px.box(filtered_data, x="RiskLevel", y="AvgVisitsPerWeek", template="plotly_dark",
-                  color="RiskLevel", color_discrete_map={"Low":"#00FF7F","Medium":"#FFD700","High":"#FF4500"})
+    fig2 = px.box(filtered_data, x="RiskLevel", y="AvgVisitsPerWeek",
+                  color="RiskLevel", color_discrete_map={'Low':'#00ff99','Medium':'#ffcc00','High':'#ff4d4d'},
+                  template="plotly_dark")
     st.plotly_chart(fig2, use_container_width=True)
 
     st.subheader("Payment Ratio")
-    fig3 = px.violin(filtered_data, x="RiskLevel", y="PaymentRatio", box=True, template="plotly_dark",
-                     color="RiskLevel", color_discrete_map={"Low":"#00FF7F","Medium":"#FFD700","High":"#FF4500"})
+    fig3 = px.violin(filtered_data, x="RiskLevel", y="PaymentRatio", box=True,
+                     color="RiskLevel", color_discrete_map={'Low':'#00ff99','Medium':'#ffcc00','High':'#ff4d4d'},
+                     template="plotly_dark")
     st.plotly_chart(fig3, use_container_width=True)
 
     st.subheader("Churn by Plan")
     plan_churn = filtered_data.groupby("PlanName")["ChurnProbability"].mean().reset_index()
     fig4 = px.bar(plan_churn, x="PlanName", y="ChurnProbability", color="ChurnProbability",
-                  template="plotly_dark", color_continuous_scale=px.colors.sequential.Plasma)
+                  color_continuous_scale=px.colors.sequential.Viridis,
+                  template="plotly_dark")
     st.plotly_chart(fig4, use_container_width=True)
-    st.markdown("</div>", unsafe_allow_html=True)
 
     # --------------------------
     # Recovery Action Table + Export
