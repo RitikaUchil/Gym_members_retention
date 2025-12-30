@@ -1,5 +1,5 @@
 # --------------------------
-# Gym Owner Dashboard - Retention Intelligence Pro (ML via Pickle) - Visual Upgrade
+# Gym Owner Dashboard - Retention Intelligence Pro (ML via Pickle) - Visual Upgrade with Readable Text
 # --------------------------
 
 import pandas as pd
@@ -73,9 +73,24 @@ def auto_map_columns(df, required_map):
     return mapped
 
 # --------------------------
-# Title
+# Header
 # --------------------------
-st.markdown("<h1 style='text-align:center;color:#00f5ff;'>🏋️ Gym Owner Retention Dashboard (ML Predictions)</h1>", unsafe_allow_html=True)
+st.markdown(
+    """
+    <h1 style="
+        text-align:center;
+        color:#00f5ff;
+        text-shadow: 2px 2px 6px rgba(0,0,0,0.8);
+        background: rgba(0,0,0,0.5);
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 15px;
+    ">
+    🏋️ Gym Owner Retention Dashboard (ML Predictions)
+    </h1>
+    """,
+    unsafe_allow_html=True
+)
 
 # --------------------------
 # File Upload
@@ -182,8 +197,8 @@ if members_file and attendance_file:
                 text-align: center;
                 box-shadow: 0 0 15px rgba(0,255,255,0.5);
             ">
-                <h1 style='color:#00f5ff;'>{value}</h1>
-                <p style='color:white;'>{label}</p>
+                <h1 style='color:#00f5ff; text-shadow: 2px 2px 6px rgba(0,0,0,0.8);'>{value}</h1>
+                <p style='color:white; text-shadow: 1px 1px 4px rgba(0,0,0,0.7);'>{label}</p>
             </div>
             """, unsafe_allow_html=True
         )
@@ -217,8 +232,9 @@ if members_file and attendance_file:
     export_cols = ["Name","PhoneNumber","RiskLevel","RecommendedAction","CouponOffer","RetentionProbability","AvgVisitsPerWeek","PaymentRatio"]
     st.markdown(
         filtered_data[export_cols].to_html(index=False).replace(
-            "<table", "<table style='border-radius:12px; overflow:hidden; box-shadow:0 0 15px rgba(0,255,255,0.5); background: rgba(0,0,0,0.5);'"
-        ), unsafe_allow_html=True
+            "<table", "<table style='border-radius:12px; overflow:hidden; box-shadow:0 0 15px rgba(0,255,255,0.5); background: rgba(0,0,0,0.6); color:white;'"
+        ).replace("<td>", "<td style='color:white;'>").replace("<th>", "<th style='color:white;'>"),
+        unsafe_allow_html=True
     )
 
     buffer = io.BytesIO()
