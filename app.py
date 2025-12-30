@@ -69,28 +69,41 @@ def set_background(image_path):
             border-radius: 18px;
         }}
         .metric-card {{
-            background: rgba(0,0,0,0.85);
+            background: rgba(0,0,0,0.65);
             padding: 18px;
-            border-radius: 14px;
+            border-radius: 15px;
             text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            transition: all 0.2s ease-in-out;
         }}
         .metric-card h1 {{
             background: linear-gradient(to right, #00f5ff, #ff00f5);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-size: 36px;
+            font-weight: bold;
             text-shadow: 1px 1px 6px rgba(0,0,0,0.6);
         }}
         .metric-card p {{
             color: white;
             font-weight: bold;
+            font-size: 18px;
+        }}
+        .dataframe th {{
+            background-color: rgba(0,0,0,0.6);
+            color: white;
+            font-weight: bold;
+        }}
+        .dataframe td {{
+            background-color: rgba(0,0,0,0.3);
+            color: white;
         }}
         </style>
         """,
         unsafe_allow_html=True
     )
 
-# Optional: set your gym image
+# Optional: set your gym background image
 set_background("assets/bg.jpg")
 
 # --------------------------
@@ -99,14 +112,20 @@ set_background("assets/bg.jpg")
 st.markdown(
     """
     <div style="
-        background: rgba(0,0,0,0.65);
-        backdrop-filter: blur(10px);
-        padding: 30px;
+        background: rgba(0,0,0,0.55);
+        backdrop-filter: blur(12px);
+        padding: 25px 30px;
         border-radius: 20px;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
         text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     ">
-        <h1 style='color:#00f5ff';>
+        <h1 style='
+            color:#00f5ff;
+            font-size:42px;
+            font-weight:bold;
+            text-shadow: 2px 2px 12px rgba(0,0,0,0.8);
+        '>
             🏋️ Gym Owner Retention Dashboard (ML Predictions)
         </h1>
     </div>
@@ -120,7 +139,7 @@ st.markdown(
 st.markdown(
     """
     <div style="
-        background: rgba(0,0,0,0.65);
+        background: rgba(0,0,0,0.55);
         backdrop-filter: blur(10px);
         padding: 25px;
         border-radius: 20px;
@@ -214,34 +233,49 @@ if members_file and attendance_file:
     filtered_data = data[data['RiskLevel'].isin(risk_filter)]
 
     # --------------------------
-    # Metrics
+    # Metrics (Modern Glass Cards)
     # --------------------------
-    c1,c2,c3,c4 = st.columns(4)
-    c1.markdown(f"<div class='metric-card'><h1>{len(filtered_data)}</h1><p>Total Members</p></div>", unsafe_allow_html=True)
-    c2.markdown(f"<div class='metric-card'><h1>{(filtered_data['RiskLevel']=='High').sum()}</h1><p>High Risk</p></div>", unsafe_allow_html=True)
-    c3.markdown(f"<div class='metric-card'><h1>{round(filtered_data['AvgVisitsPerWeek'].mean(),2)}</h1><p>Avg Visits / Week</p></div>", unsafe_allow_html=True)
-    c4.markdown(f"<div class='metric-card'><h1>{round(filtered_data['PaymentRatio'].mean(),2)}</h1><p>Payment Ratio</p></div>", unsafe_allow_html=True)
+    c1, c2, c3, c4 = st.columns(4)
+    metrics = [
+        (len(filtered_data), "Total Members"),
+        ((filtered_data['RiskLevel']=='High').sum(), "High Risk"),
+        (round(filtered_data['AvgVisitsPerWeek'].mean(),2), "Avg Visits / Week"),
+        (round(filtered_data['PaymentRatio'].mean(),2), "Payment Ratio")
+    ]
+
+    for col, (val, label) in zip([c1,c2,c3,c4], metrics):
+        col.markdown(f"""
+            <div class='metric-card'>
+                <h1>{val}</h1>
+                <p>{label}</p>
+            </div>
+        """, unsafe_allow_html=True)
 
     st.markdown("---")
 
     # --------------------------
-    # Charts
+    # Charts (Dark + Glass Integrated)
     # --------------------------
     st.subheader("Risk Distribution")
-    fig1 = px.pie(filtered_data, names="RiskLevel", hole=0.45, template="plotly_dark")
+    fig1 = px.pie(filtered_data, names="RiskLevel", hole=0.45, template="plotly_dark",
+                  color_discrete_sequence=px.colors.qualitative.T10)
+    fig1.update_layout(margin=dict(t=10,b=10,l=10,r=10), paper_bgcolor="rgba(0,0,0,0)")
     st.plotly_chart(fig1, use_container_width=True)
 
     st.subheader("Avg Visits Per Week")
-    fig2 = px.box(filtered_data, x="RiskLevel", y="AvgVisitsPerWeek", template="plotly_dark")
+    fig2 = px.box(filtered_data, x="RiskLevel", y="AvgVisitsPerWeek", template="plotly_dark", color="RiskLevel")
+    fig2.update_layout(margin=dict(t=10,b=10,l=10,r=10), paper_bgcolor="rgba(0,0,0,0)")
     st.plotly_chart(fig2, use_container_width=True)
 
     st.subheader("Payment Ratio")
-    fig3 = px.violin(filtered_data, x="RiskLevel", y="PaymentRatio", box=True, template="plotly_dark")
+    fig3 = px.violin(filtered_data, x="RiskLevel", y="PaymentRatio", box=True, template="plotly_dark", color="RiskLevel")
+    fig3.update_layout(margin=dict(t=10,b=10,l=10,r=10), paper_bgcolor="rgba(0,0,0,0)")
     st.plotly_chart(fig3, use_container_width=True)
 
     st.subheader("Churn by Plan")
     plan_churn = filtered_data.groupby("PlanName")["ChurnProbability"].mean().reset_index()
     fig4 = px.bar(plan_churn, x="PlanName", y="ChurnProbability", color="ChurnProbability", template="plotly_dark")
+    fig4.update_layout(margin=dict(t=10,b=10,l=10,r=10), paper_bgcolor="rgba(0,0,0,0)")
     st.plotly_chart(fig4, use_container_width=True)
 
     # --------------------------
