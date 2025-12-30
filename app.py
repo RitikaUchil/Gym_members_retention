@@ -1,5 +1,5 @@
 # --------------------------
-# Gym Owner Dashboard - Retention Intelligence Pro (ML via Pickle) - Visual Upgrade with Readable Text
+# Gym Owner Dashboard - Retention Intelligence Pro (ML via Pickle) - Full Glass Overlay
 # --------------------------
 
 import pandas as pd
@@ -37,7 +37,32 @@ def add_bg_from_local(image_path):
     )
 
 # Add your background image
-add_bg_from_local("assets/bg.jpg")  # Make sure path is correct
+add_bg_from_local("assets/bg.jpg")  # Replace with your image path
+
+# --------------------------
+# Global Glass Overlay for App
+# --------------------------
+st.markdown(
+    """
+    <style>
+    /* Glass overlay for main content */
+    .main-content {
+        background: rgba(0, 0, 0, 0.65) !important;
+        padding: 2rem;
+        border-radius: 20px;
+        color: white !important;
+    }
+    h1, h2, h3, h4, h5, h6, p, span, td, th {
+        color: white !important;
+        text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# Wrap all dashboard content
+st.markdown('<div class="main-content">', unsafe_allow_html=True)
 
 # --------------------------
 # Required Columns Mapping
@@ -80,11 +105,11 @@ st.markdown(
     <h1 style="
         text-align:center;
         color:#00f5ff;
-        text-shadow: 2px 2px 6px rgba(0,0,0,0.8);
+        text-shadow: 2px 2px 8px rgba(0,0,0,0.9);
         background: rgba(0,0,0,0.5);
         display: inline-block;
-        padding: 10px 20px;
-        border-radius: 15px;
+        padding: 15px 25px;
+        border-radius: 20px;
     ">
     🏋️ Gym Owner Retention Dashboard (ML Predictions)
     </h1>
@@ -244,3 +269,6 @@ if members_file and attendance_file:
 
 else:
     st.info("Please upload both Members and Attendance files")
+
+# Close main-content div
+st.markdown('</div>', unsafe_allow_html=True)
