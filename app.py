@@ -1,5 +1,5 @@
 # --------------------------
-# Gym Owner Dashboard - Retention Intelligence Pro (ML via Pickle)
+# Gym Owner Dashboard - Retention Intelligence Pro (ML via Pickle) - Enhanced UI
 # --------------------------
 
 import pandas as pd
@@ -49,7 +49,7 @@ def auto_map_columns(df, required_map):
     return mapped
 
 # --------------------------
-# Background + Glass UI
+# Background + Neon Glass UI
 # --------------------------
 def set_background(image_path):
     with open(image_path, "rb") as img:
@@ -57,42 +57,65 @@ def set_background(image_path):
     st.markdown(
         f"""
         <style>
+        /* Full-page background */
         .stApp {{
             background-image: url("data:image/jpg;base64,{encoded}");
             background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
         }}
+        /* Glass effect container */
         .block-container {{
-            background: rgba(0,0,0,0.65);
-            backdrop-filter: blur(12px);
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 20px;
             padding: 2rem;
-            border-radius: 18px;
         }}
+        /* Metric cards with neon glow */
         .metric-card {{
-            background: rgba(0,0,0,0.85);
-            padding: 18px;
-            border-radius: 14px;
+            background: rgba(0,0,0,0.7);
+            padding: 20px;
+            border-radius: 16px;
             text-align: center;
+            box-shadow: 0 0 20px rgba(0,255,255,0.6), 0 0 40px rgba(255,0,255,0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }}
+        .metric-card:hover {{
+            transform: translateY(-5px);
+            box-shadow: 0 0 25px rgba(0,255,255,0.8), 0 0 50px rgba(255,0,255,0.6);
+        }}
+        /* Gradient numbers */
         .metric-card h1 {{
-            background: linear-gradient(to right, #00f5ff, #ff00f5);
+            background: linear-gradient(90deg, #00f5ff, #ff00f5);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            font-size: 36px;
+            font-size: 38px;
+            font-weight: bold;
         }}
         .metric-card p {{
-            color: white;
+            color: #ffffff;
+            font-size: 16px;
+            margin-top: 4px;
+        }}
+        /* Scrollable dataframe */
+        .stDataFrame {{
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(255,255,255,0.1);
         }}
         </style>
         """,
         unsafe_allow_html=True
     )
 
-# set_background("assets/bg.jpg")  # optional
+# Apply background (replace path with your image)
+set_background("assets/bg.jpg")
 
 # --------------------------
 # Title
 # --------------------------
-st.title("🏋️ Gym Owner Retention Dashboard (ML Predictions)")
+st.markdown("<h1 style='text-align:center;color:#00f5ff;'>🏋️ Gym Owner Retention Dashboard (ML Predictions)</h1>", unsafe_allow_html=True)
 
 # --------------------------
 # File Upload
@@ -109,7 +132,6 @@ if members_file and attendance_file:
     # --------------------------
     member_map = auto_map_columns(members, REQUIRED_MEMBERS_COLS)
     attendance_map = auto_map_columns(attendance, REQUIRED_ATTENDANCE_COLS)
-
     members = members.rename(columns=member_map)
     attendance = attendance.rename(columns=attendance_map)
 
@@ -131,20 +153,14 @@ if members_file and attendance_file:
     members['DOB'] = pd.to_datetime(members['DOB'], errors='coerce')
     members['StartDate'] = pd.to_datetime(members['StartDate'], errors='coerce')
     members['EndDate'] = pd.to_datetime(members['EndDate'], errors='coerce')
-
     members['Age'] = (pd.Timestamp.today() - members['DOB']).dt.days // 365
     members['TrainerAssigned'] = np.where(members['TrainerID'].notna(), 1, 0)
     members['PaymentRatio'] = (members['ReceivedAmount'] / members['NetAmount']).fillna(0)
-
-    # Gender placeholder if missing
     if 'Gender' not in members.columns:
         members['Gender'] = 'Other'
 
     attendance['CheckinTime'] = pd.to_datetime(attendance['CheckinTime'], errors='coerce')
-    attendance_agg = attendance.groupby('PhoneNumber').agg(
-        TotalVisits=('CheckinTime', 'count')
-    ).reset_index()
-
+    attendance_agg = attendance.groupby('PhoneNumber').agg(TotalVisits=('CheckinTime', 'count')).reset_index()
     data = members.merge(attendance_agg, on='PhoneNumber', how='left').fillna(0)
     data['MembershipWeeks'] = ((pd.Timestamp.today() - data['StartDate']).dt.days / 7).clip(lower=1)
     data['AvgVisitsPerWeek'] = data['TotalVisits'] / data['MembershipWeeks']
@@ -156,13 +172,11 @@ if members_file and attendance_file:
         model = pickle.load(f)
 
     # --------------------------
-    # Prepare features for prediction
+    # Prepare Features
     # --------------------------
     features = ['Age','Gender','PlanName','TrainerAssigned','PaymentRatio','TotalVisits','AvgVisitsPerWeek']
     X_app = data[features]
     X_app = pd.get_dummies(X_app, columns=['Gender','PlanName'], drop_first=True)
-
-    # Align columns with trained model
     missing_cols = set(model.feature_names_in_) - set(X_app.columns)
     for col in missing_cols:
         X_app[col] = 0
@@ -173,22 +187,11 @@ if members_file and attendance_file:
     # --------------------------
     data['ChurnProbability'] = model.predict_proba(X_app)[:,1]
     data['RetentionProbability'] = 1 - data['ChurnProbability']
-
-    # Risk Levels
-    data['RiskLevel'] = pd.cut(
-        data['ChurnProbability'],
-        bins=[0,0.4,0.7,1],
-        labels=['Low','Medium','High']
-    )
+    data['RiskLevel'] = pd.cut(data['ChurnProbability'], bins=[0,0.4,0.7,1], labels=['Low','Medium','High'])
 
     # Actions & Coupons
-    def action(r):
-        return "Personal call + Free PT" if r=='High' else "WhatsApp reminder + Free class" if r=='Medium' else "Maintain engagement"
-    def coupon(r):
-        return "20% Renewal Discount" if r=='High' else "10% Discount" if r=='Medium' else "Referral Coupon"
-
-    data['RecommendedAction'] = data['RiskLevel'].astype(str).apply(action)
-    data['CouponOffer'] = data['RiskLevel'].astype(str).apply(coupon)
+    data['RecommendedAction'] = data['RiskLevel'].astype(str).apply(lambda r: "Personal call + Free PT" if r=='High' else "WhatsApp reminder + Free class" if r=='Medium' else "Maintain engagement")
+    data['CouponOffer'] = data['RiskLevel'].astype(str).apply(lambda r: "20% Renewal Discount" if r=='High' else "10% Discount" if r=='Medium' else "Referral Coupon")
 
     # --------------------------
     # Sidebar Filters
@@ -234,7 +237,6 @@ if members_file and attendance_file:
     st.subheader("📋 Recovery Action Plan")
     export_cols = ["Name","PhoneNumber","RiskLevel","RecommendedAction","CouponOffer","RetentionProbability","AvgVisitsPerWeek","PaymentRatio"]
     st.dataframe(filtered_data[export_cols], use_container_width=True)
-
     buffer = io.BytesIO()
     filtered_data[export_cols].to_excel(buffer, index=False)
     buffer.seek(0)
