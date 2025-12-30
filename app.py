@@ -109,6 +109,7 @@ if members_file and attendance_file:
     # --------------------------
     member_map = auto_map_columns(members, REQUIRED_MEMBERS_COLS)
     attendance_map = auto_map_columns(attendance, REQUIRED_ATTENDANCE_COLS)
+
     members = members.rename(columns=member_map)
     attendance = attendance.rename(columns=attendance_map)
 
@@ -117,7 +118,6 @@ if members_file and attendance_file:
     # --------------------------
     missing_members = set(REQUIRED_MEMBERS_COLS.keys()) - set(members.columns)
     missing_attendance = set(REQUIRED_ATTENDANCE_COLS.keys()) - set(attendance.columns)
-    
     if missing_members:
         st.error(f"Missing columns in Members file: {', '.join(missing_members)}")
         st.stop()
@@ -131,6 +131,7 @@ if members_file and attendance_file:
     members['DOB'] = pd.to_datetime(members['DOB'], errors='coerce')
     members['StartDate'] = pd.to_datetime(members['StartDate'], errors='coerce')
     members['EndDate'] = pd.to_datetime(members['EndDate'], errors='coerce')
+
     members['Age'] = (pd.Timestamp.today() - members['DOB']).dt.days // 365
     members['TrainerAssigned'] = np.where(members['TrainerID'].notna(), 1, 0)
     members['PaymentRatio'] = (members['ReceivedAmount'] / members['NetAmount']).fillna(0)
@@ -143,7 +144,7 @@ if members_file and attendance_file:
     attendance_agg = attendance.groupby('PhoneNumber').agg(
         TotalVisits=('CheckinTime', 'count')
     ).reset_index()
-    
+
     data = members.merge(attendance_agg, on='PhoneNumber', how='left').fillna(0)
     data['MembershipWeeks'] = ((pd.Timestamp.today() - data['StartDate']).dt.days / 7).clip(lower=1)
     data['AvgVisitsPerWeek'] = data['TotalVisits'] / data['MembershipWeeks']
@@ -155,7 +156,7 @@ if members_file and attendance_file:
         model = pickle.load(f)
 
     # --------------------------
-    # Prepare Features for Prediction
+    # Prepare features for prediction
     # --------------------------
     features = ['Age','Gender','PlanName','TrainerAssigned','PaymentRatio','TotalVisits','AvgVisitsPerWeek']
     X_app = data[features]
@@ -175,13 +176,14 @@ if members_file and attendance_file:
 
     # Risk Levels
     data['RiskLevel'] = pd.cut(
-        data['ChurnProbability'], bins=[0,0.4,0.7,1], labels=['Low','Medium','High']
+        data['ChurnProbability'],
+        bins=[0,0.4,0.7,1],
+        labels=['Low','Medium','High']
     )
 
     # Actions & Coupons
     def action(r):
         return "Personal call + Free PT" if r=='High' else "WhatsApp reminder + Free class" if r=='Medium' else "Maintain engagement"
-
     def coupon(r):
         return "20% Renewal Discount" if r=='High' else "10% Discount" if r=='Medium' else "Referral Coupon"
 
@@ -192,9 +194,7 @@ if members_file and attendance_file:
     # Sidebar Filters
     # --------------------------
     st.sidebar.header("Filters")
-    risk_filter = st.sidebar.multiselect(
-        "Risk Level", data['RiskLevel'].unique(), default=data['RiskLevel'].unique()
-    )
+    risk_filter = st.sidebar.multiselect("Risk Level", data['RiskLevel'].unique(), default=data['RiskLevel'].unique())
     filtered_data = data[data['RiskLevel'].isin(risk_filter)]
 
     # --------------------------
@@ -238,12 +238,7 @@ if members_file and attendance_file:
     buffer = io.BytesIO()
     filtered_data[export_cols].to_excel(buffer, index=False)
     buffer.seek(0)
-    st.download_button(
-        "📥 Download Recovery Plan Excel",
-        data=buffer,
-        file_name="gym_recovery_plan.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    st.download_button("📥 Download Recovery Plan Excel", data=buffer, file_name="gym_recovery_plan.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 else:
     st.info("Please upload both Members and Attendance files")
