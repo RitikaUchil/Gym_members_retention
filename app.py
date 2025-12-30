@@ -70,25 +70,28 @@ def set_background(image_path):
         }}
         .metric-card {{
             background: rgba(0,0,0,0.85);
-            padding: 18px;
-            border-radius: 14px;
+            padding: 20px;
+            border-radius: 16px;
             text-align: center;
             transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid rgba(255,255,255,0.1);
         }}
         .metric-card:hover {{
             transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(0,255,255,0.6);
+            box-shadow: 0 10px 25px rgba(0,255,255,0.6);
         }}
         .metric-card h1 {{
             background: linear-gradient(to right, #00f5ff, #ff00f5);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            font-size: 36px;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+            font-size: 38px;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.7);
+            margin-bottom: 5px;
         }}
         .metric-card p {{
-            color: white;
+            color: #f0f0f0;
             font-weight: bold;
+            margin-top: 5px;
         }}
         </style>
         """,
@@ -107,9 +110,9 @@ st.markdown(
         backdrop-filter: blur(12px);
         padding: 20px 30px;
         border-radius: 20px;
-        margin-bottom: 25px;
+        margin-bottom: 30px;
         text-align: center;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        box-shadow: 0 6px 25px rgba(0,0,0,0.6);
         border-bottom: 2px solid #00f5ff;
     ">
         <h1 style='
@@ -133,10 +136,11 @@ st.markdown(
     """
     <div style="
         background: rgba(0,0,0,0.55);
-        backdrop-filter: blur(10px);
-        padding: 20px;
+        backdrop-filter: blur(15px);
+        padding: 25px;
         border-radius: 18px;
         margin-bottom: 25px;
+        border: 1px solid rgba(255,255,255,0.1);
     ">
     """,
     unsafe_allow_html=True
@@ -156,7 +160,6 @@ if members_file and attendance_file:
 
     member_map = auto_map_columns(members, REQUIRED_MEMBERS_COLS)
     attendance_map = auto_map_columns(attendance, REQUIRED_ATTENDANCE_COLS)
-
     members = members.rename(columns=member_map)
     attendance = attendance.rename(columns=attendance_map)
 
@@ -226,27 +229,33 @@ if members_file and attendance_file:
     c3.markdown(f"<div class='metric-card'><h1>{round(filtered_data['AvgVisitsPerWeek'].mean(),2)}</h1><p>Avg Visits / Week</p></div>", unsafe_allow_html=True)
     c4.markdown(f"<div class='metric-card'><h1>{round(filtered_data['PaymentRatio'].mean(),2)}</h1><p>Payment Ratio</p></div>", unsafe_allow_html=True)
 
-    st.markdown("<hr style='border:1px solid rgba(255,255,255,0.2)'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border:1px solid rgba(255,255,255,0.2); margin:20px 0;'>", unsafe_allow_html=True)
 
     # --------------------------
     # Charts
     # --------------------------
+    st.markdown("<div style='margin-bottom:20px;'>", unsafe_allow_html=True)
     st.subheader("Risk Distribution")
-    fig1 = px.pie(filtered_data, names="RiskLevel", hole=0.45, template="plotly_dark")
+    fig1 = px.pie(filtered_data, names="RiskLevel", hole=0.45, template="plotly_dark",
+                  color_discrete_map={"Low":"#00FF7F","Medium":"#FFD700","High":"#FF4500"})
     st.plotly_chart(fig1, use_container_width=True)
 
     st.subheader("Avg Visits Per Week")
-    fig2 = px.box(filtered_data, x="RiskLevel", y="AvgVisitsPerWeek", template="plotly_dark")
+    fig2 = px.box(filtered_data, x="RiskLevel", y="AvgVisitsPerWeek", template="plotly_dark",
+                  color="RiskLevel", color_discrete_map={"Low":"#00FF7F","Medium":"#FFD700","High":"#FF4500"})
     st.plotly_chart(fig2, use_container_width=True)
 
     st.subheader("Payment Ratio")
-    fig3 = px.violin(filtered_data, x="RiskLevel", y="PaymentRatio", box=True, template="plotly_dark")
+    fig3 = px.violin(filtered_data, x="RiskLevel", y="PaymentRatio", box=True, template="plotly_dark",
+                     color="RiskLevel", color_discrete_map={"Low":"#00FF7F","Medium":"#FFD700","High":"#FF4500"})
     st.plotly_chart(fig3, use_container_width=True)
 
     st.subheader("Churn by Plan")
     plan_churn = filtered_data.groupby("PlanName")["ChurnProbability"].mean().reset_index()
-    fig4 = px.bar(plan_churn, x="PlanName", y="ChurnProbability", color="ChurnProbability", template="plotly_dark")
+    fig4 = px.bar(plan_churn, x="PlanName", y="ChurnProbability", color="ChurnProbability",
+                  template="plotly_dark", color_continuous_scale=px.colors.sequential.Plasma)
     st.plotly_chart(fig4, use_container_width=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
     # --------------------------
     # Recovery Action Table + Export
