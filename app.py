@@ -1,5 +1,5 @@
 # --------------------------
-# Gym Owner Dashboard - Retention Intelligence Pro (ML via Pickle) - Enhanced UI
+# Gym Owner Dashboard - Retention Intelligence Pro (ML via Pickle) - Visual Upgrade
 # --------------------------
 
 import pandas as pd
@@ -14,6 +14,30 @@ import pickle
 # Page Config
 # --------------------------
 st.set_page_config(page_title="Gym Owner Dashboard", layout="wide")
+
+# --------------------------
+# Background Image Function
+# --------------------------
+def add_bg_from_local(image_path):
+    with open(image_path, "rb") as f:
+        data = f.read()
+        encoded = base64.b64encode(data).decode()
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background-image: url("data:image/jpg;base64,{encoded}");
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+# Add your background image
+add_bg_from_local("assets/bg.jpg")  # Make sure path is correct
 
 # --------------------------
 # Required Columns Mapping
@@ -47,70 +71,6 @@ def auto_map_columns(df, required_map):
                 mapped[col] = standard_col
                 break
     return mapped
-
-# --------------------------
-# Background + Neon Glass UI
-# --------------------------
-def set_background(image_path):
-    with open(image_path, "rb") as img:
-        encoded = base64.b64encode(img.read()).decode()
-    st.markdown(
-        f"""
-        <style>
-        /* Full-page background */
-        .stApp {{
-            background-image: url("data:image/jpg;base64,{encoded}");
-            background-size: cover;
-            background-attachment: fixed;
-            background-position: center;
-        }}
-        /* Glass effect container */
-        .block-container {{
-            background: rgba(0,0,0,0.45);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 2rem;
-        }}
-        /* Metric cards with neon glow */
-        .metric-card {{
-            background: rgba(0,0,0,0.7);
-            padding: 20px;
-            border-radius: 16px;
-            text-align: center;
-            box-shadow: 0 0 20px rgba(0,255,255,0.6), 0 0 40px rgba(255,0,255,0.4);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }}
-        .metric-card:hover {{
-            transform: translateY(-5px);
-            box-shadow: 0 0 25px rgba(0,255,255,0.8), 0 0 50px rgba(255,0,255,0.6);
-        }}
-        /* Gradient numbers */
-        .metric-card h1 {{
-            background: linear-gradient(90deg, #00f5ff, #ff00f5);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-size: 38px;
-            font-weight: bold;
-        }}
-        .metric-card p {{
-            color: #ffffff;
-            font-size: 16px;
-            margin-top: 4px;
-        }}
-        /* Scrollable dataframe */
-        .stDataFrame {{
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 0 20px rgba(255,255,255,0.1);
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-# Apply background (replace path with your image)
-set_background("assets/bg.jpg")
 
 # --------------------------
 # Title
@@ -188,10 +148,12 @@ if members_file and attendance_file:
     data['ChurnProbability'] = model.predict_proba(X_app)[:,1]
     data['RetentionProbability'] = 1 - data['ChurnProbability']
     data['RiskLevel'] = pd.cut(data['ChurnProbability'], bins=[0,0.4,0.7,1], labels=['Low','Medium','High'])
-
-    # Actions & Coupons
-    data['RecommendedAction'] = data['RiskLevel'].astype(str).apply(lambda r: "Personal call + Free PT" if r=='High' else "WhatsApp reminder + Free class" if r=='Medium' else "Maintain engagement")
-    data['CouponOffer'] = data['RiskLevel'].astype(str).apply(lambda r: "20% Renewal Discount" if r=='High' else "10% Discount" if r=='Medium' else "Referral Coupon")
+    data['RecommendedAction'] = data['RiskLevel'].astype(str).apply(
+        lambda r: "Personal call + Free PT" if r=='High' else "WhatsApp reminder + Free class" if r=='Medium' else "Maintain engagement"
+    )
+    data['CouponOffer'] = data['RiskLevel'].astype(str).apply(
+        lambda r: "20% Renewal Discount" if r=='High' else "10% Discount" if r=='Medium' else "Referral Coupon"
+    )
 
     # --------------------------
     # Sidebar Filters
@@ -201,13 +163,30 @@ if members_file and attendance_file:
     filtered_data = data[data['RiskLevel'].isin(risk_filter)]
 
     # --------------------------
-    # Metrics
+    # Metrics with Neon/Glass
     # --------------------------
     c1,c2,c3,c4 = st.columns(4)
-    c1.markdown(f"<div class='metric-card'><h1>{len(filtered_data)}</h1><p>Total Members</p></div>", unsafe_allow_html=True)
-    c2.markdown(f"<div class='metric-card'><h1>{(filtered_data['RiskLevel']=='High').sum()}</h1><p>High Risk</p></div>", unsafe_allow_html=True)
-    c3.markdown(f"<div class='metric-card'><h1>{round(filtered_data['AvgVisitsPerWeek'].mean(),2)}</h1><p>Avg Visits / Week</p></div>", unsafe_allow_html=True)
-    c4.markdown(f"<div class='metric-card'><h1>{round(filtered_data['PaymentRatio'].mean(),2)}</h1><p>Payment Ratio</p></div>", unsafe_allow_html=True)
+    metric_values = [
+        (len(filtered_data), "Total Members"),
+        ((filtered_data['RiskLevel']=='High').sum(), "High Risk"),
+        (round(filtered_data['AvgVisitsPerWeek'].mean(),2), "Avg Visits / Week"),
+        (round(filtered_data['PaymentRatio'].mean(),2), "Payment Ratio")
+    ]
+    for col, (value, label) in zip([c1,c2,c3,c4], metric_values):
+        col.markdown(
+            f"""
+            <div style="
+                background: rgba(0,0,0,0.6);
+                padding: 20px;
+                border-radius: 15px;
+                text-align: center;
+                box-shadow: 0 0 15px rgba(0,255,255,0.5);
+            ">
+                <h1 style='color:#00f5ff;'>{value}</h1>
+                <p style='color:white;'>{label}</p>
+            </div>
+            """, unsafe_allow_html=True
+        )
 
     st.markdown("---")
 
@@ -232,11 +211,16 @@ if members_file and attendance_file:
     st.plotly_chart(fig4, use_container_width=True)
 
     # --------------------------
-    # Recovery Action Table + Export
+    # Recovery Action Table + Export (Glass Style)
     # --------------------------
     st.subheader("📋 Recovery Action Plan")
     export_cols = ["Name","PhoneNumber","RiskLevel","RecommendedAction","CouponOffer","RetentionProbability","AvgVisitsPerWeek","PaymentRatio"]
-    st.dataframe(filtered_data[export_cols], use_container_width=True)
+    st.markdown(
+        filtered_data[export_cols].to_html(index=False).replace(
+            "<table", "<table style='border-radius:12px; overflow:hidden; box-shadow:0 0 15px rgba(0,255,255,0.5); background: rgba(0,0,0,0.5);'"
+        ), unsafe_allow_html=True
+    )
+
     buffer = io.BytesIO()
     filtered_data[export_cols].to_excel(buffer, index=False)
     buffer.seek(0)
